@@ -1,0 +1,450 @@
+﻿@model WebApplication1.Models.Inventario
+@{
+    ViewBag.Title = "Detalles de inventario";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+
+    var preciosPorTalla = Newtonsoft.Json.JsonConvert.SerializeObject(ViewData["PrecioPorTalla"]);
+}
+
+@section Styles{
+    <style>
+        .tallas-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .talla {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .talla-disponible {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .talla-no-disponible {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .talla::after {
+            content: attr(data-stock);
+            position: absolute;
+            top: -55px;
+            left: calc(100% + 5px);
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 5px;
+            border-radius: 3px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .talla:hover::after {
+            opacity: 1;
+        }
+    </style>
+}
+
+@section Scripts{
+    <script>
+        $(function () {
+            $("body").addClass("sub_page");
+            $(".footer_section").addClass("fixedFooter");
+
+            // Se establece la clase 'active' en el elemento del menú correspondiente a 'Dashboard'
+            $("#navbarSupportedContent li.nav-item").each(function () {
+                if ($(this).hasClass("active")) {
+                    $(this).removeClass("active");
+                }
+                if ($(this).find("a").text() == "Dashboard") {
+                    $(this).addClass("active");
+                }
+            });
+
+            // Se obtienen y procesan los datos para mostrar de forma gráfica el precio por talla
+            var preciosPorTalla = @Html.Raw(preciosPorTalla);
+            var precioUsuario = "@ViewBag.Precio".replace(",", ".");
+            var sortedPreciosPorTalla = Object.entries(preciosPorTalla).sort(function (a, b) {
+                return parseFloat(a[0]) - parseFloat(b[0]);
+            });
+
+            var labels = sortedPreciosPorTalla.map(function (item) {
+                var size = parseFloat(item[0]);
+                return size % 1 === 0 ? size.toFixed(0) : size.toFixed(1);
+            });
+
+            var data = sortedPreciosPorTalla.map(function (item) {
+                return item[1];
+            });
+
+            var backgroundColors = sortedPreciosPorTalla.map(function (item) {
+                return item[1] < precioUsuario ? 'rgba(255, 99, 132, 0.5)' : 'rgba(75, 192, 192, 0.5)';
+            });
+
+            var borderColors = sortedPreciosPorTalla.map(function (item) {
+                return item[1] < precioUsuario ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)';
+            });
+
+            // Se configura y crea el gráfico de barras
+            var ctx = document.getElementById('precioPorTallaChart').getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Precio (€)',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                generateLabels: function (chart) {
+                                    return [
+                                        {
+                                            text: 'Inferior a tu precio',
+                                            fillStyle: 'rgba(255, 99, 132, 0.5)',
+                                            strokeStyle: 'rgba(255, 99, 132, 1)',
+                                            lineWidth: 1,
+                                            hidden: false,
+                                            index: 0
+                                        },
+                                        {
+                                            text: 'Superior a tu precio',
+                                            fillStyle: 'rgba(75, 192, 192, 0.5)',
+                                            strokeStyle: 'rgba(75, 192, 192, 1)',
+                                            lineWidth: 1,
+                                            hidden: false,
+                                            index: 1
+                                        }
+                                    ];
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Precio de mercado por talla',
+                            font: {
+                                size: 24
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Se maneja el envío de los formularios para agregar o editar existencias o precios de inventario
+            $("#frmEditInventoryStock, #frmAddInventoryStock, #frmEditInventoryItemPrice").on("submit", function (e) {
+                e.preventDefault();
+
+                var form = $(this);
+                var formData = form.serialize();
+                formData += "&sku=" + encodeURIComponent("@Model.SKU");
+                var url = "@Url.Action("AddOrEditInventoryStock", "Usuarios")";
+
+                if (form.attr("id") == "frmEditInventoryItemPrice") {
+                    url = "@Url.Action("AddOrEditInventoryItemPrice", "Usuarios")";
+                }
+
+                $.ajax({
+                    type: form.attr("method"),
+                    url: url,
+                    dataType: 'json',
+                    data: formData,
+                    success: function (response) {
+                        if (!response.success) {
+                            mostrarError(response.message);
+                        } else {
+                            if (form.attr("id") == "frmAddInventoryStock") {
+                                $("#AddInventoryStock").modal("hide");
+                                mostrarExitoLocked("Existencias añadidas correctamente.");
+                            } else {
+                                $("#EditInventoryStock").modal("hide");
+                                mostrarExitoLocked("Los cambios se han guardado correctamente.");
+                            }
+                            setTimeout(function () {
+                                location.reload();
+                            }, 2000);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                        alert("Ha ocurrido un error. Por favor, inténtelo de nuevo.");
+                    }
+                });
+            });
+
+            // Se establece el valor predeterminado del campo de existencias al abrir el modal de agregar existencias
+            $("#AddInventoryStock").on("shown.bs.modal", function () {
+                $("#txtAddStock").val("1");
+            });
+
+            // Se establece el valor predeterminado y se valida el campo de precio al abrir el modal de editar precio
+            $("#EditInventoryItemPrice").on("shown.bs.modal", function () {
+                $("#txtPrecio").val(parseFloat("@ViewBag.Precio").toFixed(2));
+                $("#txtPrecio").on("input", function () {
+                    let val = $(this).val();
+                    let regex = /^\d{0,4}(\.\d{0,2})?$/;
+
+                    if (!regex.test(val)) {
+                        $(this).val($(this).val().slice(0, -1));
+                    }
+                });
+            });
+        });
+
+        // Función para abrir el modal de agregar o editar existencias o precio de inventario
+        function openAOEModal(tipo) {
+            if (tipo == "Add") {
+                $("#AddInventoryStock").modal("show");
+            } else if (tipo == "EditStock") {
+                $("#EditInventoryStock").modal("show");
+                cargarStockPorTalla();
+            } else {
+                $("#EditInventoryItemPrice").modal("show");
+            }
+        }
+
+        // Función para cargar las existencias por talla al abrir el modal de editar existencias
+        function cargarStockPorTalla() {
+            var talla = $('#ddlTallaEdit').val();
+
+            if (talla == "") {
+                $('#txtEditStock').val("");
+            } else {
+                $.ajax({
+                    url: '@Url.Action("ObtenerStock", "Usuarios")',
+                    type: 'POST',
+                    data: {
+                        talla: talla,
+                        sku: "@Model.SKU"
+                    },
+                    success: function (response) {
+                        $('#txtEditStock').val(response);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            }
+        }
+    </script>
+}
+
+@{
+    var todasLasTallas = new List<decimal>
+{
+        36.0m, 36.5m, 37.0m, 38.0m, 38.5m, 39.0m, 40.0m, 40.5m, 41.0m, 42.0m, 42.5m, 43.0m, 44.0m, 44.5m, 45.0m, 45.5m, 46.0m, 47.0m
+    };
+    var listaTallas = ViewData["Talla"] as SelectList;
+    var tallasOrdenadas = listaTallas.OrderBy(t => decimal.Parse(t.Text)).ToList();
+    ViewData["Talla"] = new SelectList(tallasOrdenadas, "Value", "Text");
+    var tallasDecimal = listaTallas.Select(x => decimal.Parse(x.Text)).ToList();
+    var tallasNoDisponibles = todasLasTallas.Where(t => !tallasDecimal.Contains(t)).ToList();
+
+    List<SelectListItem> selectListTallas = tallasNoDisponibles.Select(t => new SelectListItem
+    {
+        Text = t % 1 == 0 ? t.ToString("0") : t.ToString("0.0"),
+        Value = t.ToString()
+    }).ToList();
+}
+
+<div class="container">
+    <div style="padding: 5rem 0rem 0rem 0rem">
+        <a href="@Url.Action("Index", "Usuarios")">Área de usuarios</a> | <a>Detalles de inventario</a>
+    </div>
+</div>
+
+<section class="layout_padding">
+    <div class="container">
+        <div class="heading_container heading_center">
+            <h2>
+                @ViewBag.Nombre
+            </h2>
+        </div>
+        <div class="row" style="margin-top: 50px">
+            <div class="col-md-6">
+                <img style="border: 3px solid #dee2e6; border-radius: 10px;" src="@Url.Content(@ViewBag.UrlImagen)" alt="@ViewBag.Nombre" class="img-fluid">
+            </div>
+            <div class="col-md-6" style="display: flex; flex-direction: column; justify-content: center;">
+                <h3>Descripción del Artículo</h3>
+                <p style="margin-bottom: 0;">@ViewBag.Descripcion</p>
+                <h3 style="margin-top: 1rem;">Tallas</h3>
+                <div class="tallas-container">
+                    @foreach (var talla in todasLasTallas)
+                    {
+                        bool disponible = ViewBag.TallasConStock.ContainsKey(talla);
+                        string claseCss = disponible ? "talla-disponible" : "talla-no-disponible";
+                        int stock = disponible ? ViewBag.TallasConStock[talla] : 0;
+                        string formatoTalla = talla % 1 == 0 ? "0" : "0.0";
+                        string tallaFormateada = talla.ToString(formatoTalla);
+                        string textoStock = stock == 0 ? "Sin existencias" : (stock == 1 ? "1 existencia" : $"{stock} existencias");
+
+                        <div class="talla @claseCss" data-stock="@textoStock">
+                            @tallaFormateada
+                        </div>
+                    }
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        <h3 style="margin-top: 1rem;">Precio</h3>
+                        <p style="margin-bottom: 0;">@((decimal)ViewBag.Precio % 1 == 0 ? ViewBag.Precio.ToString("0") : ViewBag.Precio.ToString("0.00")) €</p>
+                    </div>
+                    <div class="col-md-1"></div>
+                    <div class="col-md-9">
+                        <h3 style="margin-top: 1rem;">Precio prom. mercado</h3>
+                        <p style="margin-bottom: 0;">@((decimal)ViewBag.MediaPrecioMercadoEuros % 1 == 0 ? ViewBag.MediaPrecioMercadoEuros.ToString("0") : ViewBag.MediaPrecioMercadoEuros.ToString("0.00")) €</p>
+                    </div>
+                </div>
+                <h3 style="margin-top: 1rem;">Acciones</h3>
+                <div class="row" style="margin-right: 0; margin-left: 0; gap: 10px">
+                    <button class="btn btn-warning" onclick="openAOEModal('Add')">Añadir stock</button>
+                    @if ((ViewBag.TallasConStock as Dictionary<decimal, int>).Count > 0)
+                    {
+                        <button class="btn btn-primary" onclick="openAOEModal('EditStock')">Modificar stock</button>
+                    }
+                    <button class="btn btn-info" onclick="openAOEModal('EditPrice')">Modificar Precio</button>
+                    <button class="btn btn-danger">Borrar</button>
+                    <a href="@ViewBag.stockxlink" target="_blank">
+                        <img src="~/Assets/images/stockx.png" alt="StockX" style="width: 75px; height: auto; border-radius: .25rem">
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-5" style="justify-content: center; position: relative">
+            <canvas id="precioPorTallaChart" width="400" height="400"></canvas>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="EditInventoryStock" tabindex="-1" role="dialog" aria-labelledby="EditInventoryStockLabel" data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="EditInventoryStockLabel">Modificar existencias</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { id = "frmEditInventoryStock" }))
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" style="display: flex; flex-direction: column">
+                                @Html.LabelFor(m => m.Talla, "Talla:", new { @class = "mr-2" })
+                                @Html.DropDownListFor(m => m.Talla, ViewData["Talla"] as SelectList, new { @class = "form-control ddl-flex", required = "required", id = "ddlTallaEdit", @value = "", @onchange = "cargarStockPorTalla()" })
+                                @Html.ValidationMessageFor(m => m.Talla, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.Cantidad, "Stock:", new { @class = "mr-2" })
+                                @Html.TextBoxFor(m => m.Cantidad, new { @class = "form-control", required = "required", id = "txtEditStock", type = "number", min = "0" })
+                                @Html.ValidationMessageFor(m => m.Cantidad, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="submit" form="frmEditInventoryStock" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="AddInventoryStock" tabindex="-1" role="dialog" aria-labelledby="AddInventoryStockLabel" data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="EditInventoryStockLabel">Añadir existencias</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { id = "frmAddInventoryStock" }))
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" style="display: flex; flex-direction: column">
+                                @Html.LabelFor(m => m.Talla, "Talla:", new { @class = "mr-2" })
+                                @Html.DropDownListFor(m => m.Talla, selectListTallas, new { @class = "form-control ddl-flex", required = "required", id = "ddlTallaAdd", @value = "", @onchange = "cargarStockPorTalla()" })
+                                @Html.ValidationMessageFor(m => m.Talla, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.Cantidad, "Stock:", new { @class = "mr-2" })
+                                @Html.TextBoxFor(m => m.Cantidad, new { @class = "form-control", required = "required", id = "txtAddStock", type = "number", min = "1" })
+                                @Html.ValidationMessageFor(m => m.Cantidad, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="submit" form="frmAddInventoryStock" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="EditInventoryItemPrice" tabindex="-1" role="dialog" aria-labelledby="EditInventoryItemPriceModalLabel" data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="EditInventoryItemPriceModalLabel">Modificar Precio</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { id = "frmEditInventoryItemPrice" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.Precio, htmlAttributes: new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Precio, new { htmlAttributes = new { @class = "form-control", @type = "number", @min = "1", @step = "0.01", @placeholder = "Ingrese el nuevo precio", id = "txtPrecio" } })
+                        @Html.ValidationMessageFor(model => model.Precio, "", new { @class = "text-danger" })
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="submit" form="frmEditInventoryItemPrice" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>

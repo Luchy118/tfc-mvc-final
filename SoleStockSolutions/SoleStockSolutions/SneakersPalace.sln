@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TFC", "WebApplication1\TFC.csproj", "{C577E860-5CE2-4598-9825-FDB54C0BE6D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportsApplication1", "ReportsApplication1\ReportsApplication1.csproj", "{6A9E1AED-75B6-4B1D-A809-31B64578BC95}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C577E860-5CE2-4598-9825-FDB54C0BE6D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C577E860-5CE2-4598-9825-FDB54C0BE6D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C577E860-5CE2-4598-9825-FDB54C0BE6D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C577E860-5CE2-4598-9825-FDB54C0BE6D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A9E1AED-75B6-4B1D-A809-31B64578BC95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A9E1AED-75B6-4B1D-A809-31B64578BC95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A9E1AED-75B6-4B1D-A809-31B64578BC95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A9E1AED-75B6-4B1D-A809-31B64578BC95}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F6332CD8-A43C-4CA3-8049-438DDD298775}
+	EndGlobalSection
+EndGlobal

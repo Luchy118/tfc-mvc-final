@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="SPModel1StoreContainer" CdmEntityContainer="SPEntities1">
+    <EntitySetMapping Name="Zapateria">
+      <EntityTypeMapping TypeName="SPModel1.Zapateria">
+        <MappingFragment StoreEntitySet="Zapateria">
+          <ScalarProperty Name="sku" ColumnName="sku" />
+          <ScalarProperty Name="nombre" ColumnName="nombre" />
+          <ScalarProperty Name="descripcion" ColumnName="descripcion" />
+          <ScalarProperty Name="tallas" ColumnName="tallas" />
+          <ScalarProperty Name="existencias" ColumnName="existencias" />
+          <ScalarProperty Name="precio" ColumnName="precio" />
+          <ScalarProperty Name="imagen" ColumnName="imagen" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping>

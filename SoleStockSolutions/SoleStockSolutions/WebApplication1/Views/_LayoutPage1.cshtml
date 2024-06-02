@@ -1,0 +1,367 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="~/Assets/images/favicon.png" type="">
+    <link rel="stylesheet" type="text/css" href="~/Assets/css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/css/nice-select.min.css" integrity="sha512-CruCP+TD3yXzlvvijET8wV5WxxEh5H8P4cmz0RFbKK6FlZ2sYl3AEsKlLPHbniXKSrDdFewhbmBK5skbdsASbQ==" crossorigin="anonymous" />
+    @*<link href="~/Assets/css/all.css" rel="stylesheet" />*@
+    @*<link href="~/Assets/css/fontawesome.min.css" rel="stylesheet" />*@
+    <link href="@Url.Content("~/Content/font-awesome.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/font-awesome.min.css")" rel="stylesheet" />
+    <link href="~/Assets/css/style.css" rel="stylesheet" />
+    <link href="~/Assets/css/responsive.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <title>@ViewBag.Title</title>
+    @RenderSection("Styles", required: false)
+    <script src="~/Assets/js/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="~/Assets/js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/3.0.2/js/responsive.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/3.0.2/js/dataTables.responsive.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js" integrity="sha256-sw0iNNXmOJbQhYFuC9OF2kOlD5KQKe1y5lfBn4C9Sjg=" crossorigin="anonymous"></script>
+    <script>
+        $(function () {
+            $("#accBtn").popover({
+                trigger: "click",
+                placement: "bottom",
+                container: "body"
+            }).on("shown.bs.popover", function () {
+                $("#accBtn").css("color", "7091E6");
+
+                $("#btnPopoverCerrarSesion").on("click", function(e) {
+                    e.preventDefault();
+                    mostrarConfirmar("¿Estás seguro de que quieres cerrar sesión?", "Cierre de sesión",);
+                    $("#accBtn").popover("hide");
+                });
+            }).on("hidden.bs.popover", function () {
+                $("#accBtn").css("color", "");
+            });
+
+            $(document).on("click", function (e) {
+                if (!$(e.target).closest("#accBtn").length && !$(e.target).closest(".popover").length) {
+                    $("#accBtn").popover("hide");
+                }
+            });
+
+            $("#modalConfirmButton").on("click", function() {
+                let url = "@Url.Action("Logout", "Home")";
+                $.ajax({
+                    url: url,
+                    success: function (response) {
+                        $("#confirmModal").modal("hide");
+                        mostrarExitoLocked("Has cerrado sesión correctamente. Redirigiendo...");
+                        setTimeout(function () {
+                            window.location.href = "/Home/Index";
+                        }, 2000);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                        alert("Ha ocurrido un error. Por favor, inténtelo de nuevo.");
+                    }
+                });
+            });
+        });
+
+        function mostrarError(mensaje, titulo) {
+            if (titulo != null)
+                $("#errorModal").find("h4").text(titulo);
+            else
+                $("#errorModal").find("h4").text("Error");
+            $("#errorModal").find("p").text(mensaje);
+            $("#errorModal").modal("show");
+
+            setTimeout(function () {
+                $("#errorModal").modal("hide");
+                $("body").removeClass("modal-open");
+                $(".modal-backdrop").remove();
+            }, 2000);
+        }
+
+        function mostrarExito(mensaje, titulo) {
+            if (titulo != null)
+                $("#successModal").find("h4").text(titulo);
+            else
+                $("#successModal").find("h4").text("Éxito");
+            $("#successModal").find("p").text(mensaje);
+            $("#successModal").modal("show");
+
+            setTimeout(function () {
+                $("#successModal").modal("hide");
+                $("body").removeClass("modal-open");
+                $(".modal-backdrop").remove();
+            }, 2000);
+        }
+
+        function mostrarExitoLocked(mensaje, titulo) {
+            if (titulo != null)
+                $("#successModalLocked").find("h4").text(titulo);
+            else
+                $("#successModalLocked").find("h4").text("Éxito");
+            $("#successModalLocked").find("p").text(mensaje);
+            $("#successModalLocked").modal("show");
+
+            setTimeout(function () {
+                $("#successModalLocked").modal("hide");
+                $("body").removeClass("modal-open");
+                $(".modal-backdrop").remove();
+            }, 2000);
+        }
+
+        function mostrarConfirmar(mensaje, titulo) {
+            if (titulo != null)
+                $("#confirmModal").find("h4").text(titulo);
+            else
+                $("#confirmModal").find("h4").text("¿Estás seguro?");
+            $("#confirmModal").find("p").text(mensaje);
+            $("#confirmModal").modal("show");
+        }
+
+        function goToDashboard() {
+            let url = '@Url.Action("Index", "Usuarios")';
+            let perms = '@ViewBag.PermisoAdmin';
+            if (perms == "True")
+                url = '@Url.Action("Index", "Admin")';
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                data: { source: "btn" },
+                success: function (response) {
+                    if (response.success == false) {
+                        mostrarError(response.message);
+                    } else {
+                        window.location.href = response.url;
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                    alert("Ha ocurrido un error. Por favor, inténtelo de nuevo.");
+                }
+            });
+        }
+    </script>
+    <style>
+        .tableheader {
+            background-color: dimgray;
+            color: white;
+        }
+
+        .ddl-flex {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ced4da;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="hero_area">
+            <div class="bg-box blurred">
+                <img src="~/Assets/images/banner.png" alt="">
+            </div>
+            <header class="header_section">
+                <div class="container">
+                    <nav class="navbar navbar-expand-lg custom_nav-container ">
+                        <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                            <img src="~/Assets/images/logo.png" alt="SoleStockSolutions" style="height: 120px; width: auto;">
+                        </a>
+
+
+                        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class=""> </span>
+                        </button>
+
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav  mx-auto ">
+                                <li class="nav-item active">
+                                    <a class="nav-link hvcolor" href="@Url.Action("Index", "Home")">Inicio <span class="sr-only">(current)</span></a>
+                                </li>
+                                @if (ViewBag.PermisoAdmin == true)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link hvcolor" style="cursor: pointer" onclick="goToDashboard()">Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link hvcolor" style="cursor: pointer" href="@Url.Action("Gestion", "Admin")">Administración</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link hvcolor" style="cursor: pointer" onclick="goToDashboard()">Área de usuarios</a>
+                                    </li>
+                                }
+                            </ul>
+                            <div class="user_option">
+                                @if (Session["usuario"] != null)
+                                {
+                                    <a href="#" class="user_link" id="accBtn" data-toggle="popover" data-html="true" title="Opciones de cuenta" data-content='<a id="btnPopoverCerrarSesion" href="@Url.Action("Logout", "Home")" class="btn btn-danger btn-sm">Cerrar sesión</a>'>
+                                        <i class="fa fa-user-circle"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Login", "Home")" class="user_link">
+                                        <i id="accBtn" class="fa fa-user-circle"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+            @{
+                if (ViewBag.renderBelow == null || ViewBag.renderBelow == "false")
+                {
+                    <main>
+                        @RenderBody()
+                    </main>
+                }
+            }
+        </div>
+
+        @RenderSection("Lanzamientos", required: false)
+
+        @{
+            if (ViewBag.renderBelow == "true")
+            {
+                <main>
+                    @RenderBody()
+                </main>
+            }
+        }
+
+        <footer class="footer_section fixedFooter">
+            <div class="container">
+                <div class="row" style="justify-content: center">
+                    <div class="col-md-4">
+                        <div class="footer_detail">
+                            <a href="@Url.Action("Index", "Home")" class="footer-logo">
+                                Sneakers Palace
+                            </a>
+                            <p>
+                                @*Necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with*@
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-info">
+                    <p>
+                        &copy; <span id="displayYear"></span> Todos los derechos de autor reservados
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    @*<div id="errorModal" class="modal fade">
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-content">
+                <div class="modal-header justify-content-center">
+                    <div class="icon-box">
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <h4>Error</h4>
+                    <p></p>
+                    <button class="btn btn-success" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+    <div id="errorModal" class="modal fade">
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="icon-box">
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="modal-title w-100">Sorry!</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center">Your transaction has failed. Please go back and try again.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger btn-block" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal fade">
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="icon-box">
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="modal-title w-100">Registro exitoso</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center"></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success btn-block" data-dismiss="modal">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModalLocked" class="modal fade" data-backdrop="static">
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="icon-box">
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="modal-title w-100">Registro exitoso</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal fade" data-backdrop="static">
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <div class="icon-box">
+                        <i class="fa fa-question" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="modal-title w-100">¿Estás seguro?</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button id="modalConfirmButton" type="button" class="btn btn-danger">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*<script src="~/Scripts/general.js"></script>*@
+    @*<script src="~/Assets/js/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="~/Assets/js/bootstrap.js"></script>*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    <script src="https://unpkg.com/isotope-layout@3.0.4/dist/isotope.pkgd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/js/jquery.nice-select.min.js"></script>
+    <script src="~/Assets/js/custom.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

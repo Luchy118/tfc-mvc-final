@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="TFCModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="Inventario">
+    <Key>
+      <PropertyRef Name="Clave" />
+    </Key>
+    <Property Name="SKU" Type="varchar" MaxLength="30" Nullable="false" />
+    <Property Name="Talla" Type="decimal" Precision="10" Scale="1" />
+    <Property Name="Precio" Type="decimal" Precision="10" Scale="2" />
+    <Property Name="Cantidad" Type="int" />
+    <Property Name="Cliente" Type="varchar" MaxLength="25" />
+    <Property Name="Clave" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Usuarios">
+    <Key>
+      <PropertyRef Name="Usuario" />
+    </Key>
+    <Property Name="Usuario" Type="varchar" MaxLength="25" Nullable="false" />
+    <Property Name="Nombre" Type="varchar" MaxLength="100" />
+    <Property Name="Email" Type="varchar" MaxLength="50" />
+    <Property Name="Contrasenia" Type="varchar(max)" />
+    <Property Name="Administrador" Type="tinyint" />
+    <Property Name="FechaRegistro" Type="date" />
+  </EntityType>
+  <EntityType Name="Zapatillas">
+    <Key>
+      <PropertyRef Name="SKU" />
+    </Key>
+    <Property Name="SKU" Type="varchar" MaxLength="30" Nullable="false" />
+    <Property Name="Marca" Type="varchar" MaxLength="50" />
+    <Property Name="Modelo" Type="varchar" MaxLength="50" />
+    <Property Name="Imagen" Type="varchar(max)" />
+    <Property Name="FechaLanzamiento" Type="date" Nullable="false" />
+    <Property Name="Nombre" Type="varchar" MaxLength="50" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="100" />
+    <Property Name="Link" Type="nvarchar(max)" />
+  </EntityType>
+  <Association Name="FK_Inventario_Usuarios">
+    <End Role="Usuarios" Type="Self.Usuarios" Multiplicity="0..1" />
+    <End Role="Inventario" Type="Self.Inventario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuarios">
+        <PropertyRef Name="Usuario" />
+      </Principal>
+      <Dependent Role="Inventario">
+        <PropertyRef Name="Cliente" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Inventario_Zapatillas">
+    <End Role="Zapatillas" Type="Self.Zapatillas" Multiplicity="1" />
+    <End Role="Inventario" Type="Self.Inventario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Zapatillas">
+        <PropertyRef Name="SKU" />
+      </Principal>
+      <Dependent Role="Inventario">
+        <PropertyRef Name="SKU" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="TFCModelStoreContainer">
+    <EntitySet Name="Inventario" EntityType="Self.Inventario" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Usuarios" EntityType="Self.Usuarios" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Zapatillas" EntityType="Self.Zapatillas" Schema="dbo" store:Type="Tables" />
+    <AssociationSet Name="FK_Inventario_Usuarios" Association="Self.FK_Inventario_Usuarios">
+      <End Role="Usuarios" EntitySet="Usuarios" />
+      <End Role="Inventario" EntitySet="Inventario" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Inventario_Zapatillas" Association="Self.FK_Inventario_Zapatillas">
+      <End Role="Zapatillas" EntitySet="Zapatillas" />
+      <End Role="Inventario" EntitySet="Inventario" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

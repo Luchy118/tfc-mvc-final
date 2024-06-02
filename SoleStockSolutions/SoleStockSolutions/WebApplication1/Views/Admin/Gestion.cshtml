@@ -1,0 +1,390 @@
+﻿@model WebApplication1.Models.Zapatillas
+@{
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+@section Styles{
+    <style>
+        main {
+            align-content: unset;
+        }
+
+        #skuInput2 {
+            display: inline-block;
+            width: 100%;
+        }
+
+        .rm-padding {
+            padding-right: 0;
+            padding-left: 0;
+        }
+    </style>
+}
+
+@section Scripts{
+    <script>
+        $(function () {
+            $("body").addClass("sub_page");
+            $(".footer_section").addClass("fixedFooter");
+
+            $("#navbarSupportedContent li.nav-item").each(function () {
+                if ($(this).hasClass("active")) {
+                    $(this).removeClass("active");
+                }
+
+                if ($(this).find("a").text() == "Administración") {
+                    $(this).addClass("active");
+                }
+            });
+
+            $(".nav-tabs a").on("click", function (e) {
+                e.preventDefault();
+                $(this).tab("show");
+            });
+
+            $("#skuInput").on("input", function () {
+                var query = $(this).val();
+                if (query.length >= 1) {
+                    $.ajax({
+                        url: 'https://the-sneaker-database-api-your-ultimate-sneaker-encyclopedia.p.rapidapi.com/search',
+                        type: 'GET',
+                        data: { query: query },
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader('x-rapidapi-key', '79fcd3dd57msh35b829082e21612p1eaa4cjsn800aa5d34e7e');
+                            xhr.setRequestHeader('x-rapidapi-host', 'the-sneaker-database-api-your-ultimate-sneaker-encyclopedia.p.rapidapi.com');
+                        },
+                        success: function (data) {
+                            var suggestions = $("#skuAutocompletado");
+                            suggestions.empty();
+                            data.hits.slice(0, 10).forEach(function (hit) {
+                                if (hit.labels[2] != undefined && hit.labels[2] != null && hit.labels[2] != "" && hit.labels[0] == "sneakers") {
+                                    var encodedLink = encodeURIComponent(hit.link);
+                                    suggestions.append('<a href="#" class="list-group-item list-group-item-action" data-sku="' + hit.labels[2] + '" data-nombre="' + hit.title + '" data-marca="' + hit.brand + '" data-modelo="' + hit.labels[1] + '" data-imagen="' + hit.image + '" data-link="' + encodedLink + '">' + hit.labels[2] + ' | ' + hit.title + '</a>');
+                                }
+                            });
+
+                            $(".list-group-item").on("click", function (e) {
+                                e.preventDefault();
+                                var sku = $(this).data("sku");
+                                var nombre = $(this).data("nombre");
+                                var marca = $(this).data("marca");
+                                var modelo = $(this).data("modelo");
+                                var imagen = $(this).data("imagen");
+                                var encodedLink = $(this).data("link");
+                                console.log($(this).data("link"));
+                                console.log(encodedLink);
+                                var decodedLink = decodeURIComponent(encodedLink);
+                                console.log(decodedLink);
+                                $("#skuInput").val(sku);
+                                $("#nombreInput").val(nombre);
+                                $("#marcaInput").val(marca);
+                                $("#modeloInput").val(modelo);
+                                $("#imagenInput").val(imagen);
+                                $("#linkInput").val(decodedLink);
+                                suggestions.empty();
+                            });
+                        }
+                    });
+                } else {
+                    borrarCamposFrmZapasAdmin();
+                }
+            });
+
+            cargaCampos();
+        });
+
+        $("#frmAltaZapasAdmin").on("submit", function (e) {
+            e.preventDefault();
+
+            var form = $(this);
+
+            $.ajax({
+                type: form.attr("method"),
+                url: "@Url.Action("AddZapas", "Admin")",
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.success == false) {
+                        mostrarError(response.message);
+                    } else {
+                        mostrarExitoLocked("Datos introducidos correctamente.");
+                        borrarCamposFrmZapasAdmin(1);
+                        window.location.href = "/Admin/Gestion#add_zapatillas";
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                    alert("Ha ocurrido un error. Por favor, inténtelo de nuevo.");
+                }
+            });
+        });
+
+        $("#frmEditarZapasAdmin").on("submit", function (e) {
+            e.preventDefault();
+
+            var form = $(this);
+
+            $.ajax({
+                type: form.attr("method"),
+                url: "@Url.Action("EditZapas", "Admin")",
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.success == false) {
+                        mostrarError(response.message);
+                    } else {
+                        mostrarExitoLocked("Datos modificados correctamente.");
+                        cargaCampos();
+                        window.location.href = "/Admin/Gestion#edit_zapatillas";
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                    alert("Ha ocurrido un error. Por favor, inténtelo de nuevo.");
+                }
+            });
+        });
+
+        function borrarCamposFrmZapasAdmin(n) {
+            if (n == 1) {
+                $("#skuAutocompletado").empty();
+                $("#frmAltaZapasAdmin").find("input").each(function () {
+                    $(this).val("");
+                });
+            } else {
+                $("#frmEditarZapasAdmin").find("input").each(function () {
+                    if ($(this).attr("id") == "descripcionInput2")
+                        $(this).removeAttr("placeholder");
+                    $(this).val("");
+                });
+            }
+        }
+
+        function cargaCampos() {
+            setTimeout(function() {
+                var sku = $(".nice-select  .selected ").html();
+
+                $.ajax({
+                    url: "@Url.Action("ObtenerDatosZapa", "Admin")",
+                    type: "POST",
+                    data: {
+                        sku: sku
+                    },
+                    success: function (respuesta) {
+                        borrarCamposFrmZapasAdmin(2);
+                        $("#nombreInput2").val(respuesta.datos.Nombre);
+                        $("#marcaInput2").val(respuesta.datos.Marca);
+                        $("#modeloInput2").val(respuesta.datos.Modelo);
+                        $("#fechaLanzamientoInput2").val(fechaJsonAString(respuesta.datos.FechaLanzamiento));
+                        if (respuesta.datos.Descripcion != "El artículo no tiene descripción")
+                            $("#descripcionInput2").val(respuesta.datos.Descripcion);
+                        else
+                            $("#descripcionInput2").attr("placeholder", respuesta.datos.Descripcion);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            }, 100);
+        }
+
+        $(document).on("click.nice-select", ".nice-select .option:not(.disabled)", function () {
+            cargaCampos();
+        });
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function () {
+            cargaCampos();
+        });
+
+        function fechaJsonAString(fechaFormatoJson, separador = '-') {
+            if (fechaFormatoJson != null) {
+                let d = new Date(parseInt(fechaFormatoJson.substr(6)));
+                return [d.getFullYear(), d.getMonth() + 1, d.getDate()].map(n => n < 10 ? '0' + n : n).join(separador);
+            }
+            else
+                return "";
+        }
+
+        function lockSKU() {
+            $("#skuInput2").prop("disabled", true);
+            $("#skuInput2").niceSelect("update");
+            $(".unlockSKU").show();
+            $(".lockSKU").hide();
+        }
+
+        function unlockSKU() {
+            $("#skuInput2").prop("disabled", false);
+            $("#skuInput2").niceSelect("update");
+            $(".unlockSKU").hide();
+            $(".lockSKU").show();
+        }
+
+        $("#skuInput2").niceSelect();
+
+    </script>
+}
+
+<div class="container mt-5">
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#alta_zapatillas" class="nav-link active" role="tab" data-toggle="tab">Gestión de sneakers</a>
+        </li>
+        <li class="nav-item">
+            <a href="#gestion_usuarios" class="nav-link" role="tab" data-toggle="tab">Gestión de usuarios</a>
+        </li>
+        <li class="nav-item">
+            <a href="#gestion_solicitudes" class="nav-link" role="tab" data-toggle="tab">Gestión de solicitudes/reclamaciones</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="alta_zapatillas">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="add-tab" data-toggle="tab" href="#add_zapatillas" onclick="borrarCamposFrmZapasAdmin(2)" role="tab" aria-controls="add_zapatillas" aria-selected="true">Añadir Nuevas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="edit-tab" data-toggle="tab" href="#edit_zapatillas" onclick="borrarCamposFrmZapasAdmin(1)" role="tab" aria-controls="edit_zapatillas" aria-selected="false">Editar Existente</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="add_zapatillas" role="tabpanel" aria-labelledby="add-tab">
+                    <div class="row mt-5">
+                        <div class="col-lg-12">
+                            <h3>Alta de zapatillas</h3>
+                            <p>Formulario para dar de alta nuevas zapatillas.</p>
+                            @using (Html.BeginForm("", "", FormMethod.Post, new { @class = "form-horizontal", role = "form", id = "frmAltaZapasAdmin" }))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.SKU, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.SKU, new { @class = "form-control", id = "skuInput", autocomplete = "off", @required = "required", @maxlength = "30" })
+                                        <div id="skuAutocompletado" class="list-group"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.Nombre, new { @class = "form-control", id = "nombreInput", @readonly = "readonly", @required = "required" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.FechaLanzamiento, "Fecha de lanzamiento", htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.FechaLanzamiento, new { @class = "form-control", id = "fechaLanzamientoInput", @type = "Date", @required = "required" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.Descripcion, new { @class = "form-control", id = "descripcionInput", @maxlength = "100" })
+                                    </div>
+                                </div>
+
+                                @Html.HiddenFor(model => model.Marca, new { id = "marcaInput" })
+                                @Html.HiddenFor(model => model.Modelo, new { id = "modeloInput" })
+                                @Html.HiddenFor(model => model.Imagen, new { id = "imagenInput" })
+                                @Html.HiddenFor(model => model.Link, new { id = "linkInput" })
+
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10 rm-padding">
+                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="edit_zapatillas" role="tabpanel" aria-labelledby="edit-tab">
+                    <div class="row mt-5">
+                        <div class="col-lg-12">
+                            <h3>Editar zapatillas</h3>
+                            <p>Formulario para editar zapatillas existentes.</p>
+                            @using (Html.BeginForm("", "", FormMethod.Post, new { @class = "form-horizontal", role = "form", id = "frmEditarZapasAdmin" }))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="form-group" style="display: flex; flex-direction: column">
+                                    @Html.LabelFor(model => model.SKU, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @{
+                                            List<SelectListItem> skuList = new List<SelectListItem>();
+                                            foreach (var item in ViewBag.SKUs)
+                                            {
+                                                skuList.Add(new SelectListItem { Text = item, Value = item });
+                                            }
+                                        }
+                                        @Html.DropDownListFor(model => model.SKU, skuList, new { @class = "form-control ddl-flex", id = "skuInput2" })
+                                        <div id="skuAutocompletado2" class="list-group"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.Nombre, new { @class = "form-control", id = "nombreInput2", @maxlength = "50", @required = "required" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Marca, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.Marca, new { @class = "form-control", id = "marcaInput2", @maxlength = "50", @required = "required" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Modelo, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.Modelo, new { @class = "form-control", id = "modeloInput2", @maxlength = "50", @required = "required" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.FechaLanzamiento, "Fecha de lanzamiento", htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.FechaLanzamiento, new { @class = "form-control", id = "fechaLanzamientoInput2", @type = "Date", @required = "required" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2 rm-padding" })
+                                    <div class="col-md-10 rm-padding">
+                                        @Html.TextBoxFor(model => model.Descripcion, new { @class = "form-control", id = "descripcionInput2", @maxlength = "100" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10  rm-padding">
+                                        <button type="button" class="btn btn-secondary lockSKU" onclick="lockSKU()"><i class="fa fa-unlock"></i> Bloquear SKU</button>
+                                        <button type="button" class="btn btn-secondary unlockSKU" onclick="unlockSKU()" style="display:none;"><i class="fa fa-lock"></i> Desbloquear SKU</button>
+                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="gestion_usuarios">
+            <div class="row mt-5">
+                <div class="col-lg-12">
+                    <h3>Gestión de usuarios</h3>
+                    <p>Herramientas para gestionar los usuarios de la aplicación.</p>
+                </div>
+            </div>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="gestion_solicitudes">
+            <div class="row mt-5">
+                <div class="col-lg-12">
+                    <h3>Gestión de solicitudes/reclamaciones</h3>
+                    <p>Sección para gestionar solicitudes y reclamaciones de los usuarios.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

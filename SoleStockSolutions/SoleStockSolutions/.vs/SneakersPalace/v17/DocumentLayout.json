@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Luchy\\Desktop\\TFC\\SoleStockSolutions\\SoleStockSolutions\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C577E860-5CE2-4598-9825-FDB54C0BE6D5}|WebApplication1\\TFC.csproj|c:\\users\\luchy\\desktop\\tfc\\solestocksolutions\\solestocksolutions\\webapplication1\\views\\admin\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{C577E860-5CE2-4598-9825-FDB54C0BE6D5}|WebApplication1\\TFC.csproj|solutionrelative:webapplication1\\views\\admin\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Luchy\\Desktop\\TFC\\SoleStockSolutions\\SoleStockSolutions\\WebApplication1\\Views\\Admin\\Index.cshtml",
+              "RelativeDocumentMoniker": "WebApplication1\\Views\\Admin\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Luchy\\Desktop\\TFC\\SoleStockSolutions\\SoleStockSolutions\\WebApplication1\\Views\\Admin\\Index.cshtml",
+              "RelativeToolTip": "WebApplication1\\Views\\Admin\\Index.cshtml",
+              "ViewState": "AQIAAAQAAAAAAAAAAAAAAEEAAAAcAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-06-02T08:19:19.851Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+﻿@{
+    ViewBag.Title = "Inicio";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+@section Styles{
+    <style>
+        .blurred::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+}
+
+<section class="slider_section">
+    <div id="customCarousel1" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="container ">
+                    <div class="row">
+                        <div class="col-md-7 col-lg-6 ">
+                            <div class="detail-box">
+                                <h1>
+                                    Gestiona tu inventario de Sneakers
+                                </h1>
+                                <p>
+                                    Optimiza tu inventario de zapatillas con nuestra solución avanzada. Controla en tiempo real las entradas y salidas, y mantén siempre al día tu stock para maximizar tus ventas y minimizar pérdidas.
+                                </p>
+                                @*<div class="btn-box">
+                                    <a href="/soluciones" class="btn1">
+                                        Descubre más
+                                    </a>
+                                </div>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="container ">
+                    <div class="row">
+                        <div class="col-md-7 col-lg-6 ">
+                            <div class="detail-box">
+                                <h1>
+                                    Informes personalizados
+                                </h1>
+                                <p>
+                                    Genera informes detallados y personalizados sobre tus ventas y stock. Analiza el rendimiento de tus productos y toma decisiones informadas para impulsar tu negocio de zapatillas.
+                                </p>
+                                @*<div class="btn-box">
+                                    <a href="/reportes" class="btn1">
+                                        Ver más
+                                    </a>
+                                </div>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="container ">
+                    <div class="row">
+                        <div class="col-md-7 col-lg-6 ">
+                            <div class="detail-box">
+                                <h1>
+                                    Soporte y capacitación
+                                </h1>
+                                <p>
+                                    Obtén soporte técnico y capacitación continua para sacar el máximo provecho de nuestro sistema de gestión de zapatillas. Nuestro equipo está aquí para ayudarte a resolver cualquier problema y optimizar tus procesos.
+                                </p>
+                                @*<div class="btn-box">
+                                    <a href="/soporte" class="btn1">
+                                        Aprende más
+                                    </a>
+                                </div>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <ol class="carousel-indicators">
+                <li data-target="#customCarousel1" data-slide-to="0" class="active"></li>
+                <li data-target="#customCarousel1" data-slide-to="1"></li>
+                <li data-target="#customCarousel1" data-slide-to="2"></li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+@section Lanzamientos{
+
+    @model List<WebApplication1.Models.Zapatillas>
+
+    <section class="lanzamientos_section layout_padding-bottom" style="min-height: 1100px">
+        <div class="container">
+            <div class="heading_container heading_center mt-5">
+                <h2>
+                    Lanzamientos del último mes
+                </h2>
+            </div>
+
+            <ul class="filters_menu">
+                <li class="active" data-filter="*">All</li>
+                @foreach (var marca in ViewBag.filtroMarcas)
+                {
+                    <li data-filter=".@marca.ToLower()">@marca</li>
+                }
+            </ul>
+
+            <div class="row grid">
+                @foreach (var zapatilla in ViewBag.lanzamientosUltimoMes)
+                {
+                    <div class="col-sm-6 col-lg-4 all @zapatilla.Marca.ToLower() grid-item">
+                        <div class="box">
+                            <div style="height: 100%">
+                                <div class="img-box" style="height: 50%">
+                                    <img src="@zapatilla.Imagen" alt="@zapatilla.Nombre">
+                                </div>
+                                <div class="content" style="height: 50%">
+                                    <div class="detail-box">
+                                        <h5>
+                                            @zapatilla.Nombre
+                                        </h5>
+                                    </div>
+                                    <div class="options">
+                                        <div class="row" style="align-content: center; width: 100%">
+                                            <div class="col-6">
+                                                <a href="@zapatilla.Link" target="_blank" style="color: black">
+                                                    <i class="fa fa-info" aria-hidden="true"></i>
+                                                </a>
+                                            </div>
+                                            <div class="col-6" style="display: flex; align-items: center; justify-content: end">
+                                                <p style="margin: 0">
+                                                    @zapatilla.FechaLanzamiento.ToString("dd/MM/yyyy")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}

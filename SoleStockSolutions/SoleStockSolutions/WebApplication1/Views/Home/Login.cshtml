@@ -1,0 +1,160 @@
+﻿@model WebApplication1.Models.Usuarios
+@{
+    ViewBag.Title = "Iniciar Sesión";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+@section Styles {
+    <link href="@Url.Content("~/Assets/css/login.css")" rel="stylesheet" />
+    <style>
+        .blurred::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+}
+
+@section Scripts{
+    <script>
+        $(function () {
+            $("#frmLogin").on("submit", function (e) {
+                e.preventDefault();
+
+                var form = $(this);
+                $.ajax({
+                    type: form.attr("method"),
+                    url: "@Url.Action("ValidaLogin", "Home")",
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response.success == false) {
+                            mostrarError(response.message);
+                        } else {
+                            var redir = "@ViewBag.redirAdm";
+                            if (redir != null && redir != "")
+                                window.location.href = "/Admin/Index";
+                            else
+                                window.location.href = "/Usuarios/Index";
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                        alert("Ha ocurrido un error. Por favor, inténtelo de nuevo.");
+                    }
+                });
+            });
+
+            $("#frmRegistro").on("submit", function (e) {
+                e.preventDefault();
+
+                let passVal = $("#frmRegistro #Contrasenia").val();
+                let vfPassVal = $("#frmRegistro #confirmarContrasenia").val();
+                if (vfPassVal != passVal) {
+                    mostrarError("Las contraseñas no coinciden.");
+                    return;
+                }
+
+                var form = $(this);
+                $.ajax({
+                    type: form.attr("method"),
+                    url: "@Url.Action("ValidaRegistro", "Home")",
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (!response.success) {
+                            mostrarError(response.message);
+                        } else {
+                            mostrarExito("Ya puedes iniciar sesión.");
+                            $("#reg-log").prop("checked", false);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                        alert("Ha ocurrido un error. Por favor, inténtelo de nuevo.");
+                    }
+                });
+            });
+
+            $(".header_section .container nav .navbar-nav li").each(function () {
+                $(this).removeClass("active");
+            });
+            $("#accBtn").css("color", "7091E6");
+        });
+    </script>
+}
+
+<div class="section">
+    <div class="container">
+        <div class="row justify-content-center" style="backdrop-filter: blur(2px);">
+            <div class="col-12 text-center align-self-center py-5">
+                <div class="section pb-5 pt-5 pt-sm-2 text-center">
+                    <h6 class="mb-0 pb-3"><span>Iniciar Sesión </span><span>Registrarse</span></h6>
+                    <input class="checkbox" type="checkbox" id="reg-log" name="reg-log" />
+                    <label for="reg-log"></label>
+                    <div class="card-3d-wrap mx-auto">
+                        <div class="card-3d-wrapper">
+                            <div class="card-front">
+                                <div class="center-wrap">
+                                    @using (Html.BeginForm("", "", FormMethod.Post, new { id = "frmLogin" }))
+                                    {
+                                        <div class="section text-center">
+                                            <h4 class="mb-4 pb-3">Iniciar Sesión</h4>
+                                            <div class="form-group">
+                                                @Html.TextBoxFor(m => m.Email, new { @type = "email", @class = "form-style", placeholder = "Correo electrónico", autocomplete = "off", required = "required" })
+                                                <i class="input-icon fa fa-envelope-o"></i>
+                                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                @Html.PasswordFor(m => m.Contrasenia, new { @class = "form-style", placeholder = "Contraseña", autocomplete = "off", required = "required" })
+                                                <i class="input-icon fa fa-lock"></i>
+                                                @Html.ValidationMessageFor(m => m.Contrasenia, "", new { @class = "text-danger" })
+                                            </div>
+                                            <button type="submit" class="btn mt-4">Acceder</button>
+                                            @*<p class="mb-0 mt-4 text-center"><a href="#0" class="link">Forgot your password?</a></p>*@
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="card-back">
+                                <div class="center-wrap">
+                                    @using (Html.BeginForm("", "", FormMethod.Post, new { id = "frmRegistro" }))
+                                    {
+                                        <div class="section text-center">
+                                            <h4 class="mb-4 pb-3">Registrarse</h4>
+                                            <div class="form-group">
+                                                @Html.TextBoxFor(m => m.Nombre, new { @class = "form-style", placeholder = "Nombre y apellidos", autocomplete = "off", required = "required" })
+                                                <i class="input-icon fa fa-user" aria-hidden="true"></i>
+                                                @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                @Html.TextBoxFor(m => m.Usuario, new { @class = "form-style", placeholder = "Nombre de usuario", autocomplete = "off", required = "required" })
+                                                <i class="input-icon fa fa-tag" aria-hidden="true"></i>
+                                                @Html.ValidationMessageFor(m => m.Usuario, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                @Html.TextBoxFor(m => m.Email, new { @type = "email", @class = "form-style", placeholder = "Correo electrónico", autocomplete = "off", required = "required" })
+                                                <i class="input-icon fa fa-envelope-o" aria-hidden="true"></i>
+                                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                @Html.PasswordFor(m => m.Contrasenia, new { @class = "form-style", placeholder = "Contraseña", autocomplete = "off", required = "required" })
+                                                <i class="input-icon fa fa-lock" aria-hidden="true"></i>
+                                                @Html.ValidationMessageFor(m => m.Contrasenia, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group mt-2">
+                                                <input type="password" name="confirmarContrasenia" class="form-style" placeholder="Confirmar Contraseña" id="confirmarContrasenia" autocomplete="off" required>
+                                                <i class="input-icon fa fa-lock" aria-hidden="true"></i>
+                                            </div>
+                                            <button type="submit" class="btn mt-4">Registrarse</button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

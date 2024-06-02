@@ -1,0 +1,113 @@
+﻿@{
+    ViewBag.Title = "Admin Dashboard";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+@section Styles{
+    <style>
+        .dashboard-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+            .dashboard-card h2 {
+                margin: 0;
+                font-size: 2em;
+            }
+
+            .dashboard-card p {
+                margin: 0;
+                font-size: 1.2em;
+            }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+
+        main {
+            align-content: unset;
+        }
+    </style>
+}
+
+@section Scripts{
+    <script>
+        $(function () {
+            $("body").addClass("sub_page");
+            $(".footer_section").addClass("fixedFooter");
+
+            $("#navbarSupportedContent li.nav-item").each(function () {
+                if ($(this).hasClass("active")) {
+                    $(this).removeClass("active");
+                }
+
+                if ($(this).find("a").text() == "Dashboard") {
+                    $(this).addClass("active");
+                }
+            });
+
+            var ctx = document.getElementById("registrosChart").getContext("2d");
+            var registrosData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.RegistrosUltimos3Meses));
+
+            var labels = registrosData.map(function (item) {
+                return item.anio + "-" + ("0" + item.mes).slice(-2);
+            });
+
+            var data = registrosData.map(function (item) {
+                return item.count;
+            });
+
+            var chart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Registros de usuarios",
+                        data: data,
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}
+
+<div class="container mt-5">
+    <h1 class="mb-3">Admin Dashboard</h1>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <h2>@ViewBag.TotalUsuarios</h2>
+                <p>Total de usuarios registrados</p>
+            </div>
+            <div class="dashboard-card">
+                <h2>@ViewBag.MediaStockPorUsuario</h2>
+                <p>Media de existencias por usuario</p>
+            </div>
+            <div class="dashboard-card">
+                <h2>@((decimal)ViewBag.PrecioMedioArticulos % 1 == 0 ? ViewBag.PrecioMedioArticulos.ToString("0") : ViewBag.PrecioMedioArticulos.ToString("0.00")) €</h2>
+                <p>Precio medio por artículo</p>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="chart-container">
+                <canvas id="registrosChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>

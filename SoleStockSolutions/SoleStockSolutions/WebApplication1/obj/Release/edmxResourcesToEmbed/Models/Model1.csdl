@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="TFCModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityContainer Name="TFCEntities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="Inventario" EntityType="TFCModel.Inventario" />
+    <EntitySet Name="Usuarios" EntityType="TFCModel.Usuarios" />
+    <EntitySet Name="Zapatillas" EntityType="TFCModel.Zapatillas" />
+    <AssociationSet Name="FK_Inventario_Usuarios" Association="TFCModel.FK_Inventario_Usuarios">
+      <End Role="Usuarios" EntitySet="Usuarios" />
+      <End Role="Inventario" EntitySet="Inventario" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Inventario_Zapatillas" Association="TFCModel.FK_Inventario_Zapatillas">
+      <End Role="Zapatillas" EntitySet="Zapatillas" />
+      <End Role="Inventario" EntitySet="Inventario" />
+    </AssociationSet>
+  </EntityContainer>
+  <EntityType Name="Inventario">
+    <Key>
+      <PropertyRef Name="Clave" />
+    </Key>
+    <Property Name="SKU" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="false" />
+    <Property Name="Talla" Type="Decimal" Precision="10" Scale="1" />
+    <Property Name="Precio" Type="Decimal" Precision="10" Scale="2" />
+    <Property Name="Cantidad" Type="Int32" />
+    <Property Name="Cliente" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
+    <Property Name="Clave" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <NavigationProperty Name="Usuarios" Relationship="TFCModel.FK_Inventario_Usuarios" FromRole="Inventario" ToRole="Usuarios" />
+    <NavigationProperty Name="Zapatillas" Relationship="TFCModel.FK_Inventario_Zapatillas" FromRole="Inventario" ToRole="Zapatillas" />
+  </EntityType>
+  <EntityType Name="Usuarios">
+    <Key>
+      <PropertyRef Name="Usuario" />
+    </Key>
+    <Property Name="Usuario" Type="String" Nullable="false" MaxLength="25" FixedLength="false" Unicode="false" />
+    <Property Name="Nombre" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+    <Property Name="Email" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Contrasenia" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+    <Property Name="Administrador" Type="Byte" />
+    <Property Name="FechaRegistro" Type="DateTime" Precision="0" />
+    <NavigationProperty Name="Inventario" Relationship="TFCModel.FK_Inventario_Usuarios" FromRole="Usuarios" ToRole="Inventario" />
+  </EntityType>
+  <EntityType Name="Zapatillas">
+    <Key>
+      <PropertyRef Name="SKU" />
+    </Key>
+    <Property Name="SKU" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="false" />
+    <Property Name="Marca" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Modelo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Imagen" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+    <Property Name="FechaLanzamiento" Type="DateTime" Nullable="false" Precision="0" />
+    <Property Name="Nombre" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Descripcion" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+    <Property Name="Link" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <NavigationProperty Name="Inventario" Relationship="TFCModel.FK_Inventario_Zapatillas" FromRole="Zapatillas" ToRole="Inventario" />
+  </EntityType>
+  <Association Name="FK_Inventario_Usuarios">
+    <End Type="TFCModel.Usuarios" Role="Usuarios" Multiplicity="0..1" />
+    <End Type="TFCModel.Inventario" Role="Inventario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuarios">
+        <PropertyRef Name="Usuario" />
+      </Principal>
+      <Dependent Role="Inventario">
+        <PropertyRef Name="Cliente" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Inventario_Zapatillas">
+    <End Type="TFCModel.Zapatillas" Role="Zapatillas" Multiplicity="1" />
+    <End Type="TFCModel.Inventario" Role="Inventario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Zapatillas">
+        <PropertyRef Name="SKU" />
+      </Principal>
+      <Dependent Role="Inventario">
+        <PropertyRef Name="SKU" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+</Schema>
